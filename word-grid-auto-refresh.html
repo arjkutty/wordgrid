@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Word Grid Battle</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      background: white;
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 20px;
+      font-size: 1.8em;
+    }
+
+    .button {
+      background: #667eea;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 1em;
+      cursor: pointer;
+      width: 100%;
+      margin-bottom: 10px;
+    }
+
+    .button:active {
+      background: #5568d3;
+    }
+
+    .info-box {
+      background: #e3f2fd;
+      border: 2px solid #2196f3;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      font-size: 0.9em;
+    }
+
+    .share-box {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+    }
+
+    .share-box h3 {
+      font-size: 1em;
+      margin-bottom: 10px;
+      color: #666;
+    }
+
+    .game-url {
+      background: white;
+      padding: 10px;
+      border: 2px solid #667eea;
+      border-radius: 5px;
+      word-break: break-all;
+      font-size: 0.8em;
+      margin-bottom: 10px;
+      color: #667eea;
+      font-weight: bold;
+    }
+
+    .input-group {
+      margin-bottom: 20px;
+    }
+
+    .input-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    .input-group input {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      font-size: 1em;
+    }
+
+    .players {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 15px;
+      gap: 10px;
+    }
+
+    .player {
+      flex: 1;
+      padding: 12px;
+      border-radius: 10px;
+      text-align: center;
+    }
+
+    .player.player1 {
+      background: #e3f2fd;
+      border: 3px solid #2196f3;
+    }
+
+    .player.player2 {
+      background: #fce4ec;
+      border: 3px solid #e91e63;
+    }
+
+    .player.active {
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+    }
+
+    .player-name {
+      font-weight: bold;
+      font-size: 1em;
+      margin-bottom: 5px;
+    }
+
+    .player-score {
+      font-size: 1.3em;
+      color: #333;
+    }
+
+    .turn-indicator {
+      text-align: center;
+      font-size: 1.1em;
+      margin-bottom: 15px;
+      color: #333;
+      font-weight: 600;
+      padding: 10px;
+      background: #fff3cd;
+      border-radius: 8px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 6px;
+      margin-bottom: 20px;
+    }
+
+    .cell {
+      aspect-ratio: 1;
+      border: 2px solid #ddd;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3em;
+      font-weight: bold;
+      cursor: pointer;
+      background: white;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .cell.filled {
+      cursor: default;
+    }
+
+    .cell.player1 {
+      background: #e3f2fd;
+      color: #2196f3;
+      border-color: #2196f3;
+    }
+
+    .cell.player2 {
+      background: #fce4ec;
+      color: #e91e63;
+      border-color: #e91e63;
+    }
+
+    .letter-input {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 25px;
+      border-radius: 15px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+      display: none;
+      z-index: 1000;
+    }
+
+    .letter-input.active {
+      display: block;
+    }
+
+    .letter-input input {
+      width: 70px;
+      height: 70px;
+      text-align: center;
+      font-size: 2em;
+      border: 2px solid #667eea;
+      border-radius: 10px;
+      margin-bottom: 15px;
+      text-transform: uppercase;
+    }
+
+    .letter-input-buttons {
+      display: flex;
+      gap: 10px;
+    }
+
+    .letter-input-buttons button {
+      flex: 1;
+    }
+
+    .overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: none;
+      z-index: 999;
+    }
+
+    .overlay.active {
+      display: block;
+    }
+
+    .waiting {
+      text-align: center;
+      padding: 20px;
+      color: #666;
+      font-style: italic;
+    }
+
+    .results {
+      text-align: center;
+    }
+
+    .results h2 {
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    .final-scores {
+      display: flex;
+      justify-content: space-around;
+      margin-bottom: 20px;
+    }
+
+    .final-score {
+      text-align: center;
+      padding: 15px;
+      border-radius: 10px;
+      flex: 1;
+      margin: 0 5px;
+    }
+
+    .final-score.player1 {
+      background: #e3f2fd;
+    }
+
+    .final-score.player2 {
+      background: #fce4ec;
+    }
+
+    .final-score.winner {
+      border: 3px solid #ffd700;
+    }
+
+    .final-score-value {
+      font-size: 2em;
+      font-weight: bold;
+    }
+
+    .word-list {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      max-height: 250px;
+      overflow-y: auto;
+    }
+
+    .word-list h3 {
+      margin-bottom: 10px;
+      font-size: 1em;
+    }
+
+    .word-item {
+      padding: 6px;
+      margin-bottom: 4px;
+      border-radius: 5px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.9em;
+    }
+
+    .word-item.player1 {
+      background: #e3f2fd;
+    }
+
+    .word-item.player2 {
+      background: #fce4ec;
+    }
+
+    .refresh-note {
+      text-align: center;
+      font-size: 0.85em;
+      color: #666;
+      margin-top: 15px;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Word Grid Battle</h1>
+
+    <div id="setupScreen">
+      <div class="info-box">
+        <strong>How to play:</strong> Take turns placing letters. When full, words (3+ letters) are scored. Words go horizontally, vertically, or diagonally (left-to-right, top-to-bottom only).
+        <br><br>
+        <strong>Auto-refresh:</strong> After each turn, just refresh your page to see the latest game state!
+      </div>
+      <button class="button" onclick="createGame()">Create New Game</button>
+      <div style="text-align: center; margin: 20px 0; color: #666;">- OR -</div>
+      <div class="input-group">
+        <label>Join Existing Game:</label>
+        <input type="text" id="joinCode" placeholder="Enter game code (e.g., ABC123)">
+        <button class="button" onclick="joinGame()">Join Game</button>
+      </div>
+      <div id="setupError" style="color: red; text-align: center; margin-top: 10px;"></div>
+    </div>
+
+    <div id="gameScreen" style="display: none;">
+      <div class="share-box" id="shareBox">
+        <h3>Share with your opponent:</h3>
+        <div class="game-url" id="gameUrl"></div>
+        <button class="button" onclick="copyLink()">Copy Link</button>
+      </div>
+
+      <div id="waitingArea" class="waiting">
+        Waiting for opponent to join...
+      </div>
+
+      <div id="gameArea" style="display: none;">
+        <div class="players">
+          <div class="player player1" id="player1Info">
+            <div class="player-name">Player 1</div>
+            <div class="player-score" id="player1Score">0</div>
+          </div>
+          <div class="player player2" id="player2Info">
+            <div class="player-name">Player 2</div>
+            <div class="player-score" id="player2Score">0</div>
+          </div>
+        </div>
+
+        <div class="turn-indicator" id="turnIndicator"></div>
+
+        <div class="grid" id="grid"></div>
+
+        <div class="refresh-note">
+          The game auto-updates every 2 seconds when it's your opponent's turn
+        </div>
+      </div>
+    </div>
+
+    <div id="resultsScreen" style="display: none;">
+      <div class="results">
+        <h2 id="winnerText"></h2>
+        
+        <div class="final-scores">
+          <div class="final-score player1" id="finalPlayer1">
+            <div class="final-score-label">Player 1</div>
+            <div class="final-score-value" id="finalPlayer1Score">0</div>
+          </div>
+          <div class="final-score player2" id="finalPlayer2">
+            <div class="final-score-label">Player 2</div>
+            <div class="final-score-value" id="finalPlayer2Score">0</div>
+          </div>
+        </div>
+
+        <div class="word-list" id="wordList"></div>
+
+        <button class="button" onclick="newGame()">Start New Game</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay" id="overlay"></div>
+  <div class="letter-input" id="letterInput">
+    <input type="text" id="letterField" maxlength="1">
+    <div class="letter-input-buttons">
+      <button class="button" onclick="cancelLetter()">Cancel</button>
+      <button class="button" onclick="confirmLetter()">Place</button>
+    </div>
+  </div>
+
+  <script>
+    const VALID_WORDS = new Set([
+      "the", "and", "for", "are", "but", "not", "you", "all", "can", "her", "was", "one", "our", "out", "day",
+      "get", "has", "him", "his", "how", "man", "new", "now", "old", "see", "two", "way", "who", "boy", "did",
+      "its", "let", "put", "say", "she", "too", "use", "cat", "dog", "run", "sun", "top", "cup", "red", "big",
+      "hot", "yes", "zoo", "car", "tree", "book", "game", "word", "play", "time", "work", "call", "hand",
+      "high", "keep", "last", "left", "life", "long", "made", "make", "many", "most", "move", "much", "must",
+      "name", "next", "only", "over", "part", "same", "seem", "show", "side", "such", "take", "tell", "than",
+      "that", "them", "then", "they", "this", "very", "want", "well", "went", "were", "what", "when", "with",
+      "your", "about", "after", "again", "before", "being", "below", "could", "every", "first", "found", "great",
+      "house", "know", "large", "learn", "never", "other", "place", "plant", "point", "right", "small", "sound",
+      "spell", "still", "study", "their", "there", "these", "thing", "think", "three", "water", "where", "which",
+      "world", "would", "write", "animal", "answer", "change", "differ", "follow", "friend", "letter", "little",
+      "mother", "number", "people", "school", "second", "should", "father", "because", "another", "between",
+      "picture", "sentence", "something", "train", "rain", "trains", "rains", "ace", "act", "add", "age", "ago",
+      "aid", "aim", "air", "also", "any", "ape", "app", "arc", "ark", "arm", "art", "ash", "ask", "ate",
+      "bag", "ban", "bar", "bat", "bay", "bed", "bee", "beg", "bet", "bid", "bin", "bit", "box", "bud", "bug",
+      "bus", "buy", "cab", "can", "cap", "car", "cat", "cog", "cop", "cot", "cow", "cry", "cub", "cup", "cut",
+      "dad", "dam", "day", "den", "dew", "did", "die", "dig", "dim", "dip", "doc", "doe", "dog", "dot", "dry",
+      "dub", "dud", "due", "dug", "dye", "ear", "eat", "ebb", "egg", "elf", "elk", "elm", "emu", "end", "era",
+      "eve", "eye", "fab", "fad", "fan", "far", "fat", "fax", "fee", "few", "fig", "fin", "fir", "fit", "fix",
+      "flu", "fly", "foe", "fog", "for", "fox", "fry", "fun", "fur", "gag", "gap", "gas", "gel", "gem", "get",
+      "gig", "gnu", "god", "got", "gum", "gun", "gut", "guy", "gym", "had", "hag", "ham", "has", "hat", "hay",
+      "hem", "hen", "her", "hid", "him", "hip", "his", "hit", "hog", "hop", "hot", "how", "hub", "hue", "hug",
+      "hum", "hut", "ice", "icy", "ill", "imp", "ink", "inn", "ion", "its", "ivy", "jab", "jag", "jam", "jar",
+      "jaw", "jay", "jet", "jig", "job", "jog", "jot", "joy", "jug", "keg", "ken", "key", "kid", "kin", "kit",
+      "bake", "bakes", "lake", "lakes", "take", "takes", "make", "makes", "came", "come", "comes", "some",
+      "home", "hope", "hose", "have", "gave", "save", "wave", "face", "race", "pace", "lace", "mice", "rice",
+      "nice", "dice", "vice", "pine", "line", "mine", "fine", "wine", "dine", "nine", "vine", "cone", "bone",
+      "tone", "zone", "done", "gone", "none", "lone", "rope", "mope", "dope", "cope", "pope", "nope", "rode",
+      "code", "mode", "node", "bode", "lode", "more", "core", "bore", "wore", "sore", "tore", "pore", "fore",
+      "goes", "does", "toes", "foes", "hoes", "woes", "bees", "fees", "sees", "tees", "pees", "lees", "gees",
+      "cats", "bats", "hats", "mats", "rats", "pats", "vats", "eats", "oats", "bets", "gets", "jets", "lets",
+      "mets", "nets", "pets", "sets", "vets", "wets", "bits", "fits", "hits", "kits", "pits", "sits", "wits",
+      "bots", "cots", "dots", "gots", "hots", "jots", "lots", "pots", "rots", "tots", "bugs", "digs", "figs",
+      "gigs", "hugs", "jugs", "mugs", "pugs", "rugs", "tugs", "bags", "gags", "hags", "jags", "lags", "nags",
+      "rags", "sags", "tags", "wags", "begs", "eggs", "kegs", "legs", "pegs", "bigs", "digs", "figs", "gigs",
+      "jigs", "pigs", "rigs", "wigs", "bogs", "cogs", "dogs", "fogs", "hogs", "jogs", "logs", "buns", "guns",
+      "nuns", "puns", "runs", "suns", "bins", "dins", "fins", "gins", "pins", "sins", "tins", "wins"
+    ]);
+
+    let gameState = null;
+    let myPlayerNum = null;
+    let selectedCell = null;
+    let gameCode = null;
+    let refreshInterval = null;
+
+    // Use localStorage as our storage mechanism
+    function saveGame(code, data) {
+      try {
+        localStorage.setItem(`wordgrid_${code}`, JSON.stringify(data));
+        return true;
+      } catch (e) {
+        console.error('Save failed:', e);
+        return false;
+      }
+    }
+
+    function loadGame(code) {
+      try {
+        const data = localStorage.getItem(`wordgrid_${code}`);
+        return data ? JSON.parse(data) : null;
+      } catch (e) {
+        console.error('Load failed:', e);
+        return null;
+      }
+    }
+
+    function generateCode() {
+      return Math.random().toString(36).substring(2, 8).toUpperCase();
+    }
+
+    // Check URL on load
+    window.addEventListener('load', () => {
+      const params = new URLSearchParams(window.location.search);
+      const code = params.get('game');
+      
+      if (code) {
+        gameCode = code;
+        const saved = loadGame(code);
+        
+        if (saved) {
+          gameState = saved;
+          
+          // Determine my player number
+          if (!gameState.player2) {
+            // I'm joining as player 2
+            myPlayerNum = 2;
+            gameState.player2 = true;
+            gameState.status = 'playing';
+            saveGame(gameCode, gameState);
+          } else {
+            // Game already has 2 players, need to figure out who I am
+            // For now, let's say returning players are player 1
+            myPlayerNum = 1;
+          }
+          
+          showGameScreen();
+          
+          if (gameState.status === 'finished') {
+            showResults();
+          }
+        } else {
+          document.getElementById('setupError').textContent = 'Game not found. It may have expired.';
+        }
+      }
+    });
+
+    function createGame() {
+      gameCode = generateCode();
+      const firstPlayer = Math.random() < 0.5 ? 1 : 2;
+      
+      gameState = {
+        grid: Array(36).fill(''),
+        owners: Array(36).fill(0),
+        currentPlayer: firstPlayer,
+        scores: [0, 0],
+        moveCount: 0,
+        status: 'waiting',
+        player2: false
+      };
+      
+      myPlayerNum = 1;
+      
+      if (saveGame(gameCode, gameState)) {
+        showGameScreen();
+      } else {
+        document.getElementById('setupError').textContent = 'Failed to create game. Please try again.';
+      }
+    }
+
+    function joinGame() {
+      const code = document.getElementById('joinCode').value.toUpperCase().trim();
+      
+      if (!code) {
+        document.getElementById('setupError').textContent = 'Please enter a game code.';
+        return;
+      }
+      
+      const saved = loadGame(code);
+      
+      if (!saved) {
+        document.getElementById('setupError').textContent = 'Game not found.';
+        return;
+      }
+      
+      if (saved.player2) {
+        document.getElementById('setupError').textContent = 'Game is full.';
+        return;
+      }
+      
+      gameCode = code;
+      gameState = saved;
+      gameState.player2 = true;
+      gameState.status = 'playing';
+      myPlayerNum = 2;
+      
+      saveGame(gameCode, gameState);
+      
+      showGameScreen();
+    }
+
+    function showGameScreen() {
+      document.getElementById('setupScreen').style.display = 'none';
+      document.getElementById('gameScreen').style.display = 'block';
+      
+      // Generate a shareable URL with the game code
+      const baseUrl = window.location.href.split('?')[0];
+      const url = baseUrl + '?game=' + gameCode;
+      document.getElementById('gameUrl').textContent = url;
+      
+      if (gameState.status === 'waiting') {
+        document.getElementById('waitingArea').style.display = 'block';
+        document.getElementById('gameArea').style.display = 'none';
+        document.getElementById('shareBox').style.display = 'block';
+        // Auto-refresh while waiting for player 2
+        if (myPlayerNum === 1) {
+          startAutoRefresh();
+        }
+      } else {
+        document.getElementById('waitingArea').style.display = 'none';
+        document.getElementById('gameArea').style.display = 'block';
+        document.getElementById('shareBox').style.display = 'none';
+        renderGame();
+      }
+    }
+
+    function copyLink() {
+      const url = document.getElementById('gameUrl').textContent;
+      
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url).then(() => {
+          alert('Link copied! Send it to your opponent.');
+        }).catch(() => {
+          prompt('Copy this link:', url);
+        });
+      } else {
+        prompt('Copy this link:', url);
+      }
+    }
+
+    function renderGame() {
+      document.getElementById('player1Score').textContent = gameState.scores[0];
+      document.getElementById('player2Score').textContent = gameState.scores[1];
+
+      document.getElementById('player1Info').classList.toggle('active', gameState.currentPlayer === 1);
+      document.getElementById('player2Info').classList.toggle('active', gameState.currentPlayer === 2);
+
+      const isMyTurn = gameState.currentPlayer === myPlayerNum;
+      document.getElementById('turnIndicator').textContent = isMyTurn ? 
+        '🎮 Your Turn - Click a cell to place a letter' : 
+        '⏳ Opponent\'s Turn - Waiting for their move...';
+
+      const gridEl = document.getElementById('grid');
+      gridEl.innerHTML = '';
+      
+      for (let i = 0; i < 36; i++) {
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        
+        if (gameState.grid[i]) {
+          cell.textContent = gameState.grid[i];
+          cell.classList.add('filled');
+          cell.classList.add(gameState.owners[i] === 1 ? 'player1' : 'player2');
+        } else if (isMyTurn) {
+          cell.onclick = () => selectCell(i);
+        }
+        
+        gridEl.appendChild(cell);
+      }
+
+      // Start or stop auto-refresh based on whose turn it is
+      if (isMyTurn) {
+        stopAutoRefresh();
+      } else {
+        startAutoRefresh();
+      }
+    }
+
+    function startAutoRefresh() {
+      // Clear any existing interval
+      stopAutoRefresh();
+      
+      // Check for updates every 2 seconds
+      refreshInterval = setInterval(() => {
+        const saved = loadGame(gameCode);
+        if (saved) {
+          // If waiting for player 2 and they've joined
+          if (gameState.status === 'waiting' && saved.status === 'playing') {
+            gameState = saved;
+            showGameScreen();
+            return;
+          }
+          
+          const oldMoveCount = gameState.moveCount;
+          gameState = saved;
+          
+          // If there's a new move, update the display
+          if (gameState.moveCount > oldMoveCount) {
+            if (gameState.status === 'finished') {
+              stopAutoRefresh();
+              showResults();
+            } else {
+              renderGame();
+            }
+          }
+        }
+      }, 2000);
+    }
+
+    function stopAutoRefresh() {
+      if (refreshInterval) {
+        clearInterval(refreshInterval);
+        refreshInterval = null;
+      }
+    }
+
+    function selectCell(index) {
+      selectedCell = index;
+      document.getElementById('overlay').classList.add('active');
+      document.getElementById('letterInput').classList.add('active');
+      document.getElementById('letterField').value = '';
+      document.getElementById('letterField').focus();
+    }
+
+    function cancelLetter() {
+      selectedCell = null;
+      document.getElementById('overlay').classList.remove('active');
+      document.getElementById('letterInput').classList.remove('active');
+    }
+
+    function confirmLetter() {
+      const letter = document.getElementById('letterField').value.toUpperCase();
+      
+      if (!letter || !/[A-Z]/.test(letter)) {
+        alert('Please enter a valid letter (A-Z)');
+        return;
+      }
+
+      gameState.grid[selectedCell] = letter;
+      gameState.owners[selectedCell] = myPlayerNum;
+      gameState.moveCount++;
+      
+      const newWords = findNewWords(selectedCell);
+      if (newWords.length > 0) {
+        gameState.scores[myPlayerNum - 1] += newWords.reduce((sum, word) => sum + word.length, 0);
+      }
+
+      if (gameState.moveCount === 36) {
+        gameState.status = 'finished';
+        saveGame(gameCode, gameState);
+        cancelLetter();
+        showResults();
+      } else {
+        gameState.currentPlayer = gameState.currentPlayer === 1 ? 2 : 1;
+        saveGame(gameCode, gameState);
+        cancelLetter();
+        renderGame();
+      }
+    }
+
+    function findNewWords(placedIndex) {
+      const words = [];
+      const row = Math.floor(placedIndex / 6);
+      const col = placedIndex % 6;
+
+      for (let startCol = 0; startCol <= col; startCol++) {
+        for (let endCol = col; endCol < 6; endCol++) {
+          if (endCol - startCol + 1 >= 3) {
+            const word = extractWord(row, startCol, row, endCol, 'h');
+            if (word && VALID_WORDS.has(word.toLowerCase())) {
+              words.push(word);
+            }
+          }
+        }
+      }
+
+      for (let startRow = 0; startRow <= row; startRow++) {
+        for (let endRow = row; endRow < 6; endRow++) {
+          if (endRow - startRow + 1 >= 3) {
+            const word = extractWord(startRow, col, endRow, col, 'v');
+            if (word && VALID_WORDS.has(word.toLowerCase())) {
+              words.push(word);
+            }
+          }
+        }
+      }
+
+      const diagTLBR = getDiagonalTLBR(row, col);
+      for (let i = 0; i < diagTLBR.length; i++) {
+        for (let j = i + 2; j < diagTLBR.length; j++) {
+          const word = diagTLBR.slice(i, j + 1).map(pos => gameState.grid[pos.row * 6 + pos.col]).join('');
+          if (word.length >= 3 && !word.includes('') && VALID_WORDS.has(word.toLowerCase())) {
+            words.push(word);
+          }
+        }
+      }
+
+      const diagTRBL = getDiagonalTRBL(row, col);
+      for (let i = 0; i < diagTRBL.length; i++) {
+        for (let j = i + 2; j < diagTRBL.length; j++) {
+          const word = diagTRBL.slice(i, j + 1).map(pos => gameState.grid[pos.row * 6 + pos.col]).join('');
+          if (word.length >= 3 && !word.includes('') && VALID_WORDS.has(word.toLowerCase())) {
+            words.push(word);
+          }
+        }
+      }
+
+      return words;
+    }
+
+    function extractWord(startRow, startCol, endRow, endCol, dir) {
+      let text = '';
+      if (dir === 'h') {
+        for (let c = startCol; c <= endCol; c++) {
+          const letter = gameState.grid[startRow * 6 + c];
+          if (!letter) return null;
+          text += letter;
+        }
+      } else {
+        for (let r = startRow; r <= endRow; r++) {
+          const letter = gameState.grid[r * 6 + startCol];
+          if (!letter) return null;
+          text += letter;
+        }
+      }
+      return text;
+    }
+
+    function getDiagonalTLBR(row, col) {
+      const positions = [];
+      let r = row, c = col;
+      while (r > 0 && c > 0) { r--; c--; }
+      while (r < 6 && c < 6) {
+        positions.push({ row: r, col: c });
+        r++; c++;
+      }
+      return positions;
+    }
+
+    function getDiagonalTRBL(row, col) {
+      const positions = [];
+      let r = row, c = col;
+      while (r > 0 && c < 5) { r--; c++; }
+      while (r < 6 && c >= 0) {
+        positions.push({ row: r, col: c });
+        r++; c--;
+      }
+      return positions;
+    }
+
+    function showResults() {
+      document.getElementById('gameScreen').style.display = 'none';
+      document.getElementById('resultsScreen').style.display = 'block';
+
+      const p1Score = gameState.scores[0];
+      const p2Score = gameState.scores[1];
+
+      document.getElementById('finalPlayer1Score').textContent = p1Score;
+      document.getElementById('finalPlayer2Score').textContent = p2Score;
+
+      if (p1Score > p2Score) {
+        document.getElementById('winnerText').textContent = 'Player 1 Wins! 🎉';
+        document.getElementById('finalPlayer1').classList.add('winner');
+      } else if (p2Score > p1Score) {
+        document.getElementById('winnerText').textContent = 'Player 2 Wins! 🎉';
+        document.getElementById('finalPlayer2').classList.add('winner');
+      } else {
+        document.getElementById('winnerText').textContent = "It's a Tie! 🤝";
+      }
+
+      const allWords = findAllWords();
+      const wordListEl = document.getElementById('wordList');
+      wordListEl.innerHTML = '<h3>Words Found:</h3>';
+      
+      if (allWords.length === 0) {
+        wordListEl.innerHTML += '<p>No valid words found!</p>';
+      } else {
+        allWords.forEach(wordInfo => {
+          const div = document.createElement('div');
+          div.className = `word-item player${wordInfo.player}`;
+          div.innerHTML = `<span>${wordInfo.word.toUpperCase()}</span><span>${wordInfo.word.length} pts</span>`;
+          wordListEl.appendChild(div);
+        });
+      }
+    }
+
+    function findAllWords() {
+      const words = [];
+      
+      for (let row = 0; row < 6; row++) {
+        for (let startCol = 0; startCol < 6; startCol++) {
+          for (let endCol = startCol + 2; endCol <= 5; endCol++) {
+            const word = extractWord(row, startCol, row, endCol, 'h');
+            if (word && VALID_WORDS.has(word.toLowerCase())) {
+              let lastPlayer = 1;
+              for (let c = startCol; c <= endCol; c++) {
+                lastPlayer = gameState.owners[row * 6 + c];
+              }
+              words.push({ word, player: lastPlayer });
+            }
+          }
+        }
+      }
+
+      for (let col = 0; col < 6; col++) {
+        for (let startRow = 0; startRow < 6; startRow++) {
+          for (let endRow = startRow + 2; endRow <= 5; endRow++) {
+            const word = extractWord(startRow, col, endRow, col, 'v');
+            if (word && VALID_WORDS.has(word.toLowerCase())) {
+              let lastPlayer = 1;
+              for (let r = startRow; r <= endRow; r++) {
+                lastPlayer = gameState.owners[r * 6 + col];
+              }
+              words.push({ word, player: lastPlayer });
+            }
+          }
+        }
+      }
+
+      for (let row = 0; row < 6; row++) {
+        for (let col = 0; col < 6; col++) {
+          const diagTLBR = getDiagonalTLBR(row, col);
+          for (let i = 0; i < diagTLBR.length; i++) {
+            for (let j = i + 2; j < diagTLBR.length; j++) {
+              const positions = diagTLBR.slice(i, j + 1);
+              const word = positions.map(pos => gameState.grid[pos.row * 6 + pos.col]).join('');
+              if (word.length >= 3 && !word.includes('') && VALID_WORDS.has(word.toLowerCase())) {
+                const lastPlayer = gameState.owners[positions[positions.length - 1].row * 6 + positions[positions.length - 1].col];
+                words.push({ word, player: lastPlayer });
+              }
+            }
+          }
+
+          const diagTRBL = getDiagonalTRBL(row, col);
+          for (let i = 0; i < diagTRBL.length; i++) {
+            for (let j = i + 2; j < diagTRBL.length; j++) {
+              const positions = diagTRBL.slice(i, j + 1);
+              const word = positions.map(pos => gameState.grid[pos.row * 6 + pos.col]).join('');
+              if (word.length >= 3 && !word.includes('') && VALID_WORDS.has(word.toLowerCase())) {
+                const lastPlayer = gameState.owners[positions[positions.length - 1].row * 6 + positions[positions.length - 1].col];
+                words.push({ word, player: lastPlayer });
+              }
+            }
+          }
+        }
+      }
+
+      return words;
+    }
+
+    function newGame() {
+      if (gameCode) {
+        localStorage.removeItem(`wordgrid_${gameCode}`);
+      }
+      window.location.href = window.location.href.split('?')[0];
+    }
+
+    document.getElementById('letterField').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        confirmLetter();
+      }
+    });
+  </script>
+</body>
+</html>
